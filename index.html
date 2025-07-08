@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Patiko–Nungiuai Road Video Map</title>
+  <title>Patiko–Nunguaia Road Video Map</title>
   <meta charset="utf-8" />
   <style>
     body { margin: 0; padding: 0; font-family: Arial, sans-serif; }
@@ -105,7 +105,7 @@
     let routeData = [];
     let marker, player;
 
-    fetch('patiko_nungiuai_corrected.geojson')  // Make sure this file is in the same folder
+    fetch('patiko_nungiuai.geojson')  // Make sure this file is in the same folder
       .then(res => res.json())
       .then(data => {
         routeData = data.features;
