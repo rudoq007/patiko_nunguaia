@@ -12,16 +12,8 @@
       border-bottom: 1px solid #ccc;
     }
 
-    #header h1 {
-      margin: 0;
-      font-size: 22px;
-    }
-
-    #header p {
-      margin: 4px 0 0;
-      font-size: 14px;
-      color: #555;
-    }
+    #header h1 { margin: 0; font-size: 22px; }
+    #header p { margin: 4px 0 0; font-size: 14px; color: #555; }
 
     #content {
       display: flex;
@@ -97,20 +89,31 @@
   </div>
 
   <script>
-    let map = L.map('map').setView([-3.77, 142.88], 15);
+    let map = L.map('map').setView([-3.77, 142.88], 13);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '© OpenStreetMap contributors'
     }).addTo(map);
 
     let routeData = [];
     let marker, player;
-    let isVideoPlaying = false;
-    let playerReady = false;
-    let routeReady = false;
-    let canSync = false;
+
+    fetch('patiko_nungiuai.geojson')
+      .then(res => res.json())
+      .then(data => {
+        routeData = data.features;
+        const latlngs = routeData.map(f => [f.geometry.coordinates[1], f.geometry.coordinates[0]]);
+        L.polyline(latlngs, { color: 'blue' }).addTo(map);
+        marker = L.marker(latlngs[0]).addTo(map);
+        setInterval(syncMarkerToVideo, 1000);
+      });
+
+    // Expose this globally so the YouTube API can call it
+    window.onYouTubeIframeAPIReady = function () {
+      player = new YT.Player('ytplayer');
+    };
 
     function syncMarkerToVideo() {
-      if (!canSync || !isVideoPlaying || !player || typeof player.getCurrentTime !== 'function') return;
+      if (!player || typeof player.getCurrentTime !== 'function' || routeData.length === 0) return;
 
       let time = Math.floor(player.getCurrentTime());
 
@@ -127,35 +130,6 @@
         document.getElementById('dist').innerText = match.properties.cum_distance_km.toFixed(2);
       }
     }
-
-    // Load GeoJSON and prepare map
-    fetch('patiko_nungiuai.geojson')
-      .then(res => res.json())
-      .then(data => {
-        routeData = data.features;
-        const latlngs = routeData.map(f => [f.geometry.coordinates[1], f.geometry.coordinates[0]]);
-        L.polyline(latlngs, { color: 'blue' }).addTo(map);
-        marker = L.marker(latlngs[0]).addTo(map);
-        routeReady = true;
-        startSyncLoopIfReady();
-      });
-
-    // YouTube API
-    function onYouTubeIframeAPIReady() {
-      player = new YT.Player('ytplayer', {
-        events: {
-          'onReady': () => {
-            playerReady = true;
-            startSyncLoopIfReady();
-          },
-          'onStateChange': onPlayerStateChange
-        }
-      });
-    }
-
-    function onPlayerStateChange(event) {
-      isVideoPlaying = event.data === YT.PlayerState.PLAYING;
-    }
-
-    function startSyncLoopIfReady() {
-      if
+  </script>
+</body>
+</html>
