@@ -78,7 +78,7 @@
 </head>
 <body>
   <div id="header">
-    <h1>Patiko–Nungiuai Road Video Map</h1>
+    <h1>Patiko–Nunguaia Road Video Map</h1>
     <p>Follow the road journey through Wosera Gawi District in East Sepik Province with synchronized video and GPS tracking.</p>
   </div>
 
@@ -105,7 +105,7 @@
     let routeData = [];
     let marker, player;
 
-    fetch('patiko_nungiuai.geojson')
+    fetch('patiko_nungiuai_corrected.geojson')  // Make sure this file is in the same folder
       .then(res => res.json())
       .then(data => {
         routeData = data.features;
@@ -121,9 +121,14 @@
 
     function syncMarkerToVideo() {
       if (!player || typeof player.getCurrentTime !== 'function' || routeData.length === 0) return;
+
       let time = Math.floor(player.getCurrentTime());
 
-      let match = routeData.reduce((prev, curr) => {
+      // Only use points with a timestamp
+      let pointsWithTime = routeData.filter(f => f.properties.timestamp !== undefined);
+      if (pointsWithTime.length === 0) return;
+
+      let match = pointsWithTime.reduce((prev, curr) => {
         return Math.abs(curr.properties.timestamp - time) < Math.abs(prev.properties.timestamp - time) ? curr : prev;
       });
 
