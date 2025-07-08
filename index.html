@@ -104,8 +104,9 @@
 
     let routeData = [];
     let marker, player;
+    let isVideoPlaying = false; // NEW
 
-    fetch('patiko_nungiuai.geojson')  // Make sure this file is in the same folder
+    fetch('patiko_nungiuai.geojson') // Ensure this matches your file name
       .then(res => res.json())
       .then(data => {
         routeData = data.features;
@@ -116,15 +117,21 @@
       });
 
     function onYouTubeIframeAPIReady() {
-      player = new YT.Player('ytplayer');
+      player = new YT.Player('ytplayer', {
+        events: {
+          'onStateChange': onPlayerStateChange
+        }
+      });
+    }
+
+    function onPlayerStateChange(event) {
+      isVideoPlaying = event.data === YT.PlayerState.PLAYING;
     }
 
     function syncMarkerToVideo() {
-      if (!player || typeof player.getCurrentTime !== 'function' || routeData.length === 0) return;
+      if (!isVideoPlaying || !player || typeof player.getCurrentTime !== 'function' || routeData.length === 0) return;
 
       let time = Math.floor(player.getCurrentTime());
-
-      // Only use points with a timestamp
       let pointsWithTime = routeData.filter(f => f.properties.timestamp !== undefined);
       if (pointsWithTime.length === 0) return;
 
